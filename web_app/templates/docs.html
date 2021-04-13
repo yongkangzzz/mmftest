@@ -1,0 +1,28 @@
+<!-- prettier-ignore -->
+{% extends 'base.html' %} 
+
+{% set active_page = 'docs' %} 
+
+{% block body %}
+<h1 class="mt-5">Documentation page</h1>
+<div id="like_button_container">wdhwdhwdhw?</div>
+
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block script %}
+<!-- Load React. -->
+<!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+<script
+  src="https://unpkg.com/react@17/umd/react.development.js"
+  crossorigin
+></script>
+<script
+  src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+  crossorigin
+></script>
+
+<!-- Load our React component. -->
+<script src="{{ url_for('static', filename='js/docs.js') }}"></script>
+
+{% endblock %}

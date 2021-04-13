@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'explainer' %} 
+
+{% block body %}
+    <!--modal for uploading images-->
+    <div class="modal fade" id="uploadImgModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Upload an Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadImg" method="POST" action="{{ url_for('uploadImage') }}" enctype="multipart/form-data">
+                        <input type="file" name="inputImg">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="uploadImg" class="btn btn-primary">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--modal for selecting models or uploading user checkpoints-->
+    <div class="modal fade" id="UploadModelModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Select a Model or Upload Checkpoints</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadModel" method="POST" action="{{ url_for('uploadModel') }}" enctype="multipart/form-data">
+                        <h5>Please select an option:</h5>
+                        <select onchange="showOptionForm(this)" class="form-select" aria-label="select options" name="selectOption">
+                            <option disabled selected value> -- Select an Option -- </option>
+                            <option value="internalModel">MMF Internal Model</option>
+                            <option value="selfModel">Self-defined Model</option>
+                            <option value="noModel">I Don't Have a Model</option>
+                        </select>
+                        <div id="internalModel" style="display:none;">
+                            <hr>
+                            <h5>Please select an internal model:</h5>
+                            <select class="form-select" aria-label="select model" name="selectModel">
+                                <option value="mmbt">fusion/mmbt</option>
+                                <option value="bert">vilbert/visual bert</option>
+                            </select>
+                            <hr>
+                            <h5>Please upload your checkpoints of the selected model:</h5>
+                            <input type="file" name="inputCheckpoint1">
+                        </div>
+                        <div id="selfModel" style="display:none;">
+                            <hr>
+                            <h5>Please upload your ONNX checkpoints:</h5>
+                            <input type="file" name="inputCheckpoint2">
+                        </div>
+                        <div id="noModel" style="display:none;">
+                            <hr>
+                            <h5>Please select a pre-trained model provided by us</h5>
+                            <select class="form-select" aria-label="select existing model" name="selectExistingModel">
+                                <option value="fusion">fusion</option>
+                                <option value="mmbt">mmbt</option>
+                                <option value="vilbert">vilbert</option>
+                                <option value="visualBert">visual bert</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="uploadModel" class="btn btn-primary">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <br>
+        <h4 id="tut" style="text-align: center;">If you are unfamiliar with how to use this explainer, please click HERE to start the tutorial</h4>
+        <br>
+        <div class="row justify-content-center">
+            <button id="btnUploadMdl" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UploadModelModal">Upload Model</button>
+            <button id="btnUploadImg" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadImgModal">Upload Image</button>
+            <select id="selectMethod" class="form-select form-select-method" aria-label="select method" form="predict" name="expMethod">
+                <option value="lime">LIME</option>
+                <option value="shap">SHAP</option>
+                <option value="torchray">TorchRay</option>
+            </select>
+            <button id="btnPredict" type="submit" form="predict" onclick="loading()" class="btn btn-danger">Predict</button>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-sm text-center">
+                <div id="imgBox1" class="img-box">
+                    <img class="img-in-box" src="{{ url_for('static', filename=imgName) }}" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                    <form id="predict" method="POST" action="{{ url_for('predict', imgName=imgName) }}">
+                        {% if imgTexts %}
+                            <textarea id = "textInput" rows='2' placeholder="Add some texts to the image here..." name="texts">{{ imgTexts }}</textarea>
+                        {% else %}
+                            <textarea id = "textInput" rows='2' placeholder="Add some texts to the image here..." name="texts"></textarea>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            <div class="col-sm text-center">
+                <div id="imgBox2" class="img-box">
+                    <div id="loader" style="display:none;" class="loader"></div>
+                    <img id="bglogo" class="img-in-box" src="{{ url_for('static', filename=imgExp) }}" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                    {% if explanations %}
+                        <textarea readonly style="outline: none;" id="textarea" rows='5' placeholder="Press 'Predict' button above to get results and explanations" name="texts">{% for line in explanations %}{{ line }}&#013{% endfor %}</textarea>
+                    {% else %}
+                        <textarea readonly style="outline: none;" id="textarea" rows='5' placeholder="Press 'Predict' button above to get results and explanations" name="texts"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
